@@ -41,7 +41,7 @@
 
 ## Tutorial  
 
-For an example of how to use the package see [here](https://github.com/luslab/chromWaveR/blob/master/inst/example/chromWaveR_example.mdl). 
+For an example of how to use the package see [here](https://github.com/luslab/chromWaveR/blob/master/inst/example/chromWaveR_example.md). 
 
 
 
