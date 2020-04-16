@@ -1,18 +1,16 @@
-# chromWaveR: R package to predict nucleosome(/TF) occupancy from DNA sequence using pre-trained chromWave models.
+# chromWaveR: R package to predict nucleosome occupancy from DNA sequence using pre-trained chromWave models.
 
 ## Abstract 
+
 
 ## Requirements 
 
 * Install following python packages:
    
-    * CPU version 
     ```console 
+    # CPU version 
     pip install tensorflow==2 keras numpy
-    ``` 
-
-    * GPU version 
-    ```console 
+    # GPU version 
     pip install tensorflow-gpu==2 keras numpy
     ``` 
 
@@ -22,21 +20,29 @@
 
     2) Install python packages
     
-    * CPU version 
     ```console 
     conda create -n keras python
+    # CPU version 
     pip install tensorflow==2 keras numpy
+    # GPU version 
+    pip install tensorflow-gpu==2 keras numpy
     ``` 
-
-    * GPU version 
-    ```console 
-    conda create -n keras python
-    pip install tensorflow==2 keras numpy
-    ``` 
-
 
 * Install following R packages from CRAN: 
-reticulate, kerasR
+    ```R 
+    install.packages('tidyverse', 'reticulate', 'kerasR')
+    ``` 
+
+* Install chromWaveR:
+    ```R 
+    install.packages('devtools')
+    devtools::install_github('luslab/chromWaveR')
+    ``` 
+
+## Tutorial  
+
+For an example 
+
 
 
 ## Reference 
