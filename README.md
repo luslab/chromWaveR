@@ -30,13 +30,20 @@
 
 * Install following R packages from CRAN: 
     ```R 
-    install.packages('tidyverse', 'reticulate', 'kerasR')
+    install.packages(c('tidyverse', 'reticulate', 'kerasR'))
+    ``` 
+
+* Install following R packages from Bioconductor: 
+    ```R 
+    install.packages(c('tidyverse', 'reticulate', 'kerasR'))
     ``` 
 
 * Install chromWaveR:
     ```R 
-    install.packages('devtools')
-    devtools::install_github('luslab/chromWaveR')
+    if (!requireNamespace("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+    
+    BiocManager::install("Biostrings")
     ``` 
 
 ## Tutorial  

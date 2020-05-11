@@ -7,18 +7,15 @@ Load ChromWave model
 ====================
 
 ``` r
+library(reticulate)
+use_condaenv(condaenv = 'keras', required = T)
 library(BSgenome.Scerevisiae.UCSC.sacCer3)
 library(TxDb.Scerevisiae.UCSC.sacCer3.sgdGene)
 library(genomation)
-
 library(tidyverse)
-
 library(ComplexHeatmap)
 library(cowplot)
 theme_set(theme_cowplot())
-
-library(reticulate)
-use_condaenv(condaenv = 'keras', required = T)
 library(kerasR)
 library(chromWaveR)
 
@@ -66,16 +63,16 @@ promoter.seqs <- oneHotEncode(promoter.seqs)
 # Predict nucleosome occupancy from one-hot encoded sequences
 promoter.preds <- model$predict(promoter.seqs)
 
-# Smooth nucleosome occupancy predictions before plotting
-promoter.smoothPreds <- smoothChromWavePreds(preds = promoter.preds,
-                                             model.name = 'invivo')
+# Transform predictions into nucleosome occupancy before plotting
+promoter.nucOccs <- transformPredictionsToOccupancies(preds = promoter.preds,
+                                                       model.name = 'invivo')
 
 # PLOT: Metaprofile of predicted nucleosome occupancy around yeast TSSs
-promoter.smoothPreds[[1]] %>%
+promoter.nucOccs[[1]] %>%
   as.data.frame  %>% tbl_df %>%
   mutate(peak_id = 1:length(V1),
          strand = as.character(strand(saccer.promoters))) %>%
-  gather(pos, score, 1:ncol(promoter.smoothPreds[[1]])) %>%
+  gather(pos, score, 1:ncol(promoter.nucOccs[[1]])) %>%
   mutate(pos = as.numeric(gsub('V', '', pos))) %>%
   group_by(strand, pos) %>%
   summarise(mean_score = mean(score), sd_score = sd(score)) %>%
@@ -90,11 +87,11 @@ promoter.smoothPreds[[1]] %>%
 ``` r
 # PLOT: Heatmap of predicted nucleosome occupancies around yeast TSS
 # sorted by distance of NFR to annotated TSS
-i.sorted <- apply(promoter.smoothPreds[[1]], 1, which.min) %>% order
-Heatmap(promoter.smoothPreds[[1]][i.sorted,],
+i.sorted <- apply(promoter.nucOccs[[1]], 1, which.min) %>% order
+Heatmap(promoter.nucOccs[[1]][i.sorted,],
         show_column_names = F, show_row_names = F,
         cluster_columns = F, cluster_rows = F,
-        name = 'Smoothed pred\nnuc occupancy')
+        name = 'Predicted\nnuc occupancy')
 ```
 
 ![](chromWaveR_example_files/figure-markdown_github/chunk_chromwaver_promoterPred-2.png)
@@ -121,25 +118,25 @@ genome.seqs <- oneHotEncode(genome.seqs)
 # Predict nucleosome occupancy for forward and reverse strand of chr15
 genome.preds <- model$predict(genome.seqs)
 
-# Smooth nucleosome occupancy predictions
-genome.smoothPreds <- smoothChromWavePreds(preds = genome.preds,
-                                           model.name = 'invitro')
+# Transform predictions to nucleosome occupancies
+genome.nucOccs <- transformPredictionsToOccupancies(preds = genome.preds,
+                                                    model.name = 'invitro')
 
-# Split chrs into tiles of width 1 and assign smoothed nuc prediction
+# Split chrs into tiles of width 1 and assign nuc prediction
 plus.tiles <- tile(saccer.genome, width = 1)[[1]]
 strand(plus.tiles) <- '+'
-plus.tiles$score <- genome.smoothPreds[[1]][1,]
+plus.tiles$score <- genome.nucOccs[[1]][1,]
 
 minus.tiles <- plus.tiles
 strand(minus.tiles) <- '-'
-minus.tiles$score <- genome.smoothPreds[[1]][2,]
+minus.tiles$score <- genome.nucOccs[[1]][2,]
 
 # Combine fwd and rev strand chr15 tiles
 chr.tiles <- c(plus.tiles, minus.tiles) %>% sort
 rm(plus.tiles, minus.tiles)
 
 # Compute a score matrix for +/-1kb around annotated yeast TSSs from
-# smoothed nuc predictions
+# nuc occuoancy predictions
 score.matrix <- ScoreMatrixBin(target = chr.tiles,
                                windows = saccer.promoters,
                                bin.num = unique(width(saccer.promoters)),
@@ -174,7 +171,7 @@ nucStrand.heatmaps <- lapply(c('+', '-'), function(s) {
   Heatmap(strand.matrix[i.sorted,],
           show_column_names = F, show_row_names = F,
           cluster_columns = F, cluster_rows = F,
-          name = 'Smoothed pred\nnuc occupancy')
+          name = 'Predicted \nnuc occupancy')
 })
 nucStrand.heatmaps[[1]]
 ```

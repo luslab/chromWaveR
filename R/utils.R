@@ -139,21 +139,21 @@ oneHotEncode <- function(dna.strs) {
   return(list(oneHot.strs))
 }
 
-#' Function to smooth predictions derived from chromWave models.
+#' Function to transform chromWave predictions to nucleosome occupancy.
 #'
 #' Chromwave models were trained to perform multi class classification,
 #' meaning they give n class probabilites back.
-#' The function takes the class probabilites as input as smoothes them to a
-#' continous signal which can be interpreted as nucleosome occupancy
+#' The function takes the class probabilites as input and transforms them to a
+#' continuous signal which can be interpreted as nucleosome occupancy
 #' (Nuc/TF occupancy in case of the TF-NUC model).
-#' Smoothing is performed with the same parameters as used in the chromWave paper.
+#' Transformation is performed with the same parameters as used in the chromWave paper.
 #'
 #' @param \code{preds} Predictions made with a chromWave model.
 #' @param \code{model.name} Model name of the chromWave model.
 #'
 #' @importFrom reticulate source_python
 #'
-#' @return Function return smoothed predictions from chromWave.
+#' @return Function return predicted nucleosome occupancy.
 #'
 #' @export
 #'
@@ -168,26 +168,26 @@ oneHotEncode <- function(dna.strs) {
 #' # Perform prediciton
 #' dna.preds <- model$predict(dna.strs)
 #'
-#' # Smooth predictions
-#' dna.preds <- smoothChromWavePreds(dna.preds, model.name = 'invitro')
+#' # Transform predictions to nuc occ
+#' dna.preds <- transformPredictionsToOccupancies(dna.preds, model.name = 'invitro')
 #'
-smoothChromWavePreds <- function(preds, model.name) {
+transformPredictionsToOccupancies <- function(preds, model.name) {
   # Check for valid model.name
   if(!(model.name %in% availableModels()$model_name)) {
     stop('Invalid model.name.
          Please check availableModels() for valid model names.')
   }
 
-  # Load smoothing funcitons from *.py
+  # Load functions from *.py
   smooth.py <- system.file('py', 'smooth_functions.py', package = 'chromWaveR')
   source_python(smooth.py)
 
-  # Get smoothing parameters for chromWave model used to derive predictions
-  smooth.params <- get_preprocessing_parameters(model_type = model.name)
+  # Get pre-processing parameters for chromWave model used to derive predictions
+  preprocess.params <- get_preprocessing_parameters(model_type = model.name)
 
-  # Smooth predicted nuc occupancy
+  # Transform predicted nuc occupancy
   if(!is.list(preds)) preds <- list(preds)
-  smooth.preds <- invert_discretizing(preds, smooth.params)
+  nuc.occs <- invert_discretizing(preds, preprocess.params)
 
-  return(smooth.preds)
+  return(nuc.occs)
 }
